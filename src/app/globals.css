@@ -1,26 +1,206 @@
 @import "tailwindcss";
 
+/* =============================================================================
+   Brand tokens: black, white, red (red sampled from the logo: #C01426).
+   Components use semantic tokens only (bg-primary, text-muted-foreground, ...).
+   ============================================================================= */
 :root {
+  /* raw brand palette */
+  --brand-red: #c01426;
+  --brand-red-strong: #9e0f1f; /* hover / pressed */
+  --brand-red-bright: #ef3b48; /* red text on black: 4.9:1 */
+  --brand-ink: #0b0b0c;
+  --brand-ink-2: #141416;
+  --brand-ink-3: #1f2023;
+  --brand-steel: #2b2d31;
+  --brand-white: #ffffff;
+
+  /* semantic (shadcn/ui naming) */
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0b0b0c;
+  --card: #ffffff;
+  --card-foreground: #0b0b0c;
+  --popover: #ffffff;
+  --popover-foreground: #0b0b0c;
+  --primary: var(--brand-red);
+  --primary-foreground: #ffffff;
+  --secondary: #f2f2f3;
+  --secondary-foreground: #0b0b0c;
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b; /* 7.7:1 on white */
+  --accent: #fbe9eb;
+  --accent-foreground: #7f0c19;
+  --destructive: #b91c1c;
+  --success: #15803d;
+  --warning: #b45309;
+  --border: #e4e4e7;
+  --input: #d4d4d8;
+  --ring: var(--brand-red);
+  --radius: 3px;
+
+  /* inverted (black) surfaces: header, hero, footer */
+  --inverse: var(--brand-ink);
+  --inverse-2: var(--brand-ink-2);
+  --inverse-3: var(--brand-ink-3);
+  --inverse-foreground: #f4f4f5;
+  --inverse-muted: #a1a1aa; /* 7.9:1 on ink */
+  --inverse-border: #2a2b2f;
+  --inverse-accent: var(--brand-red-bright);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--brand-red-strong);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-inverse: var(--inverse);
+  --color-inverse-2: var(--inverse-2);
+  --color-inverse-3: var(--inverse-3);
+  --color-inverse-foreground: var(--inverse-foreground);
+  --color-inverse-muted: var(--inverse-muted);
+  --color-inverse-border: var(--inverse-border);
+  --color-inverse-accent: var(--inverse-accent);
+
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display-face), var(--font-body), ui-sans-serif, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Tight, industrial corners: mostly crisp, never bubbly. Circles (rounded-full) only for small indicators. */
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius-md: var(--radius);
+  --radius-lg: 4px;
+  --radius-xl: 5px;
+  --radius-2xl: 6px;
+  --radius-3xl: 8px;
+  --radius-4xl: 10px;
+
+  --animate-speed-line: speed-line 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  --animate-spin-slow: spin 40s linear infinite;
+  --animate-wheel-roll: spin 48s linear infinite;
+  --animate-wheel-in: wheel-in 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-fade-up: fade-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-badge-pop: badge-pop 0.35s cubic-bezier(0.3, 1.6, 0.5, 1) both;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes speed-line {
+  0% { transform: translateX(-120%) scaleX(0.6); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateX(260%) scaleX(1); opacity: 0; }
+}
+
+@keyframes wheel-in {
+  from { opacity: 0; transform: translateX(12%) rotate(-50deg); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes badge-pop {
+  from { transform: scale(0.4); }
+  to { transform: none; }
+}
+
+/* Cart drawer (native <dialog>): slide in from the right, lock page scroll while open. */
+@keyframes drawer-in {
+  from { transform: translateX(100%); }
+  to { transform: none; }
+}
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.cart-drawer[open] { animation: drawer-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.cart-drawer[open]::backdrop { animation: backdrop-in 0.25s ease both; }
+html:has(.cart-drawer[open]) { overflow: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  .cart-drawer[open], .cart-drawer[open]::backdrop { animation: none; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--brand-red);
+    color: #fff;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Diagonal "tread" texture used on dark sections. Pure CSS, no image request. */
+  .texture-tread {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, var(--inverse-foreground) 4%, transparent) 0 2px,
+      transparent 2px 14px
+    );
+  }
+  .texture-grid {
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--inverse-foreground) 6%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--inverse-foreground) 6%, transparent) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at 70% 40%, #000 20%, transparent 70%);
+  }
+  /* Scroll reveal: elements start visible without JS; RevealOnScroll adds data-reveal. */
+  [data-reveal="hidden"] {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  [data-reveal="shown"] {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  [data-reveal="hidden"] {
+    opacity: 1;
+    transform: none;
+  }
 }

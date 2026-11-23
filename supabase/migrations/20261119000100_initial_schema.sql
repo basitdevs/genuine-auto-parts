@@ -300,18 +300,36 @@ create index product_fitments_ymm_idx     on public.product_fitments (make_id, m
 create index product_fitments_year_idx    on public.product_fitments (year, make_id);
 create index product_fitments_product_idx on public.product_fitments (product_id);
 
--- Re-index the parent product when fitment changes so make/model names stay searchable.
-create or replace function public.touch_product_search()
+-- Re-index parent products when fitment changes so make/model names stay searchable.
+-- Statement-level with transition tables: one UPDATE per bulk insert, not one per row.
+create or replace function public.touch_product_search_ins()
 returns trigger language plpgsql as $$
 begin
-  update public.products set title = title
-   where id = coalesce(new.product_id, old.product_id);
+  update public.products set title = title where id in (select distinct product_id from new_rows);
   return null;
 end $$;
 
-create trigger product_fitments_touch
-  after insert or update or delete on public.product_fitments
-  for each row execute function public.touch_product_search();
+create or replace function public.touch_product_search_del()
+returns trigger language plpgsql as $$
+begin
+  update public.products set title = title where id in (select distinct product_id from old_rows);
+  return null;
+end $$;
+
+create trigger product_fitments_touch_ins
+  after insert on public.product_fitments
+  referencing new table as new_rows
+  for each statement execute function public.touch_product_search_ins();
+
+create trigger product_fitments_touch_upd
+  after update on public.product_fitments
+  referencing new table as new_rows
+  for each statement execute function public.touch_product_search_ins();
+
+create trigger product_fitments_touch_del
+  after delete on public.product_fitments
+  referencing old table as old_rows
+  for each statement execute function public.touch_product_search_del();
 
 -- -----------------------------------------------------------------------------
 -- Commerce (cart + orders). Checkout (Stripe) arrives in Phase 3.

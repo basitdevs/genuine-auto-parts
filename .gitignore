@@ -39,3 +39,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# business data & import reports (keep out of git)
+/data/imports/*.csv
+/data/reports/
+
+# supabase local
+/supabase/.temp/
+/supabase/.branches/
+
+# playwright
+/test-results/
+/playwright-report/
+/tests/e2e/.auth/
